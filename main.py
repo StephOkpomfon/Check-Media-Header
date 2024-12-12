@@ -5,6 +5,10 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import pandas as pd
 import requests
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # take environment variables from .env.
 
 
 def setup_driver_with_cookie_header(url, cookie_header):
@@ -50,15 +54,20 @@ def check_header(driver, header_xpath):
 
 
 def main():
-    url = "https://unicc:5NJjoVm-RV8u9Qun4hnt@drupalandia.unhcr.info/nl/3072"
+    url = f"https://{os.environ['UNICC_AUTH']
+                     }@drupalandia.unhcr.info/nl/3072"
     header_xpath = "//header"  # Update the XPath to target the header you want
     file_location = "file.xlsx"
     # To select A and B
 
     # Insert excel file in this folder
     # I'm reading from just one column the one that has the links
-    sheet = pd.read_excel(file_location, sheet_name="Task 45", usecols="G")
+    sheet = pd.read_excel(file_location, sheet_name="Task 28", usecols="G")
+    # Ensure URLs start with http/https
+    sheet = sheet[sheet.iloc[:, 0].str.startswith("http", na=False)]
 
+    # Clean the DataFrame: drop NaN values and keep valid URLs
+    sheet = sheet.dropna()  # Remove NaN rows
     # Loop through the URLs in column G
     # for url in sheet['G']:
     for url in sheet.iloc[:, 0]:  # This refers to the first column, i.e., 'G'
@@ -67,7 +76,7 @@ def main():
             response = requests.head(url, allow_redirects=True)
 
             if response.status_code == 200:  # URL is valid
-                cookie_header = "cookie_consent=true; SSESS21b59bb5e3dfa2488205d0b07ea969fe=w7aKp0C-DLGUzEynJxPhUUNn9%2CGCtLa5%2Ci1o5w%2CYk7oJednf"
+                cookie_header = os.environ['COOKIE_CONSENT']
                 driver = setup_driver_with_cookie_header(url, cookie_header)
 
                 header_xpath = "//header"  # Update the XPath to target the header you want
